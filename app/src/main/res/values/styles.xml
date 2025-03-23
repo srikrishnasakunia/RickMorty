@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.RickMorty" parent="Theme.Material3.DayNight">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="android:statusBarColor">@color/primary</item>
+        <item name="android:navigationBarColor">@color/primary</item>
+        <item name="materialThemeOverlay">@style/ThemeOverlay.RickMorty</item>
+    </style>
+
+    <style name="ThemeOverlay.RickMorty" parent="">
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.RickMorty.Title</item>
+        <item name="cardViewStyle">@style/CardView.RickMorty</item>
+    </style>
+
+    <style name="TextAppearance.RickMorty.Title" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:fontFamily">@font/roboto_serif</item>
+        <item name="android:textColor">@color/on_surface</item>
+    </style>
+
+    <style name="CardView.RickMorty" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardElevation">8dp</item>
+        <item name="cardBackgroundColor">@color/surface</item>
+    </style>
+</resources>

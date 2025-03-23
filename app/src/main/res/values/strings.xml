@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">RickMorty</string>
+
+    <string name="search_hint">Search characters…</string>
+    <string name="empty_state_title">No characters found</string>
+    <string name="error_loading_data">Error loading data</string>
+
+    <string name="species">Species</string>
+    <string name="status">Status</string>
+    <string name="gender">Gender</string>
+    <string name="origin">Origin</string>
+    <string name="episodes">Episodes</string>
+
+    <string name="species_format">Species: %s</string>
+    <string name="status_format">Status: %s</string>
+    <string name="gender_format">Gender: %s</string>
+    <string name="origin_format">Origin: %s</string>
+    <string name="episodes_format">Episodes:\n%s</string>
+
+    <string name="clear">Clear</string>
+    <string name="generic_error_message">Something went wrong!\nPlease try again</string>
+    <string name="retry">Retry</string>
+    <string name="loading_message">Loading characters…</string>
+
+    <string name="scroll_up">Move up</string>
+
+</resources>
