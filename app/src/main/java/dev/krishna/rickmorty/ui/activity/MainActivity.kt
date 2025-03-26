@@ -1,19 +1,26 @@
 package dev.krishna.rickmorty.ui.activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.doAfterTextChanged
+import androidx.core.app.ActivityOptionsCompat
+import androidx.core.util.Pair
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
-import dev.krishna.rickmorty.data.api.model.Character
+import dev.krishna.rickmorty.R
+import dev.krishna.rickmorty.data.api.model.Filters
 import dev.krishna.rickmorty.data.api.model.RickMortyCharacter
 import dev.krishna.rickmorty.databinding.ActivityMainBinding
 import dev.krishna.rickmorty.ui.adapters.CharacterPagingAdapter
+import dev.krishna.rickmorty.ui.adapters.GridSpacingItemDecoration
 import dev.krishna.rickmorty.ui.adapters.RecyclerItem
 import dev.krishna.rickmorty.ui.adapters.StickyHeaderItemDecoration
 import dev.krishna.rickmorty.ui.state.UIState
@@ -30,12 +37,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-    }
-
-    private fun setUpToolbar() {
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
+        setUpCharacterRecyclerView()
+        setUpObservers()
+        setupFilters()
+        setupFab()
     }
 
     private fun setUpCharacterRecyclerView() {
@@ -64,10 +69,20 @@ class MainActivity : AppCompatActivity() {
                 moveDuration = 200
             }
         }
+        val spacing = resources.getDimensionPixelSize(R.dimen.grid_spacing)
+        binding.rvCharacters.addItemDecoration(GridSpacingItemDecoration(2, spacing, true))
     }
 
     private fun openDetailsScreen(character: RickMortyCharacter, view: View) {
+        val intent = Intent(this, CharacterDetailsActivity::class.java).apply {
+            putExtra("CHARACTER_ID", character.id)
+        }
 
+        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+            this,
+            Pair(view.findViewById<ImageView>(R.id.ivCharacter), getString(R.string.transition_character_image))
+        )
+        startActivity(intent, options.toBundle())
     }
 
     private fun setUpObservers() {
@@ -108,15 +123,37 @@ class MainActivity : AppCompatActivity() {
         hideLoading()
     }
 
-    private fun setupSearch() {
-        binding.searchView.editText.doAfterTextChanged { text ->
-            if (text?.length ?: 0 >= 3) {
-                viewModel.searchCharacters(text.toString())
-                binding.rvCharacters.smoothScrollToPosition(0)
-            } else if (text.isNullOrEmpty()) {
-                viewModel.clearSearch()
-            }
+    private fun setupFilters() {
+        listOf("Alive", "Dead", "unknown").forEach { status ->
+            binding.filterChipGroup.addView(Chip(this).apply {
+                text = status
+                isCheckable = true
+                isChecked = viewModel.filters.value?.status == status
+                setOnCheckedChangeListener { _, checked ->
+                    viewModel.applyFilters(
+                        if (checked) Filters(status = status) else Filters()
+                    )
+                }
+            })
         }
     }
 
+    private fun setupFab() {
+        binding.fabScrollTop.apply {
+            hide()
+            setOnClickListener {
+                binding.rvCharacters.smoothScrollToPosition(0)
+            }
+        }
+
+        binding.rvCharacters.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy > 20) {
+                    binding.fabScrollTop.show()
+                } else if (dy < -5) {
+                    binding.fabScrollTop.hide()
+                }
+            }
+        })
+    }
 }

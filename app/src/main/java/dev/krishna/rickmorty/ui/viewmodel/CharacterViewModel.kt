@@ -15,6 +15,7 @@ import dev.krishna.rickmorty.ui.adapters.RecyclerItem
 import dev.krishna.rickmorty.ui.state.UIState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,23 +40,25 @@ class CharacterViewModel @Inject constructor(
 
     fun loadCharacters() {
         _uiState.value = UIState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _filters.value?.let { filters ->
-                characterRepository.getCharacters(
-                    name = filters.name,
-                    status = filters.status,
-                    species = filters.species
-                ).observeForever { result ->
-                    when (result) {
+                val result = withContext(Dispatchers.IO) {
+                    characterRepository.getCharacters(
+                        name = filters.name,
+                        status = filters.status,
+                        species = filters.species
+                    )
+                }
+                result.observeForever { apiResult ->
+                    when (apiResult) {
                         is ApiResult.Success -> {
-                            val mappedData = result.data.map { character ->
+                            val mappedData = apiResult.data.map { character ->
                                 RecyclerItem.CharacterItem(character) as RecyclerItem
                             }
                             _uiState.postValue(UIState.Success(mappedData))
                         }
-
                         is ApiResult.Error -> {
-                            _uiState.postValue(UIState.Error(result.exception.message.toString()))
+                            _uiState.postValue(UIState.Error(apiResult.exception.message.toString()))
                         }
                     }
                 }
@@ -68,16 +71,14 @@ class CharacterViewModel @Inject constructor(
         loadCharacters()
     }
 
-    fun clearFilters(filters: Filters) {
+    fun clearFilters() {
         _filters.value = Filters()
         loadCharacters()
     }
 
     private fun observeBookmarks() {
-        viewModelScope.launch(Dispatchers.IO) {
-            characterRepository.getBookmarks().observeForever {
-                _bookmarks.postValue(it)
-            }
+        characterRepository.getBookmarks().observeForever {
+            _bookmarks.postValue(it)
         }
     }
 

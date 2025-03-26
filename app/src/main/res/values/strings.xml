@@ -23,5 +23,8 @@
     <string name="loading_message">Loading characters…</string>
 
     <string name="scroll_up">Move up</string>
+    <string name="unknown_error">Unknown Error Encountered</string>
+    <string name="transition_character_image">character_image_transition</string>
 
+    <string name="episodes_count">Episodes: %d</string>
 </resources>

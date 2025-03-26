@@ -17,6 +17,7 @@ class CharacterPagingSource(
         return try {
             val page = params.key ?: 1
             val response = apiService.getCharacters(page, name, status, species)
+            Log.e("CharacterPagingSource", "Response: $response")
             LoadResult.Page(
                 data = response.results,
                 prevKey = if (response.info.prev != null) page - 1 else null,

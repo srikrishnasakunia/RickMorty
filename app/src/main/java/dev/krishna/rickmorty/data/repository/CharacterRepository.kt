@@ -13,6 +13,7 @@ import dev.krishna.rickmorty.data.database.AppDatabase
 import javax.inject.Inject
 import javax.inject.Singleton
 import dev.krishna.rickmorty.data.api.model.Character
+import dev.krishna.rickmorty.data.api.model.Episode
 import dev.krishna.rickmorty.data.database.Bookmark
 import dev.krishna.rickmorty.data.repository.state.ApiResult
 
@@ -62,6 +63,29 @@ class CharacterRepository @Inject constructor(
             appDatabase.bookmarkDao().deleteBookmark(bookmark)
         } else {
             appDatabase.bookmarkDao().insertBookmark(bookmark)
+        }
+    }
+
+    suspend fun getCharacterDetails(characterId: Int): ApiResult<Character>{
+        try {
+            val characterDetails = apiService.getCharacterDetails(characterId)
+            Log.d("CharacterRepository", "getCharacterDetails: $characterDetails")
+            return ApiResult.Success(characterDetails)
+        } catch (e: Exception) {
+            return ApiResult.Error(e)
+        }
+    }
+
+    suspend fun getEpisodesData(episodeUrls: List<String>): ApiResult<List<Episode>> {
+        if (episodeUrls.isEmpty()) {
+            return ApiResult.Success(emptyList())
+        }
+        try {
+            val episodeIds = episodeUrls.map { it.substringAfterLast("/") }
+            val episodeResponse = apiService.getEpisodes(episodeIds.joinToString(","))
+            return ApiResult.Success(episodeResponse)
+        } catch (e:Exception) {
+            return ApiResult.Error(e)
         }
     }
 

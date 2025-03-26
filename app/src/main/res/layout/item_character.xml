@@ -11,8 +11,7 @@
         android:layout_height="wrap_content"
         app:cardElevation="8dp"
         app:cardCornerRadius="8dp"
-        app:strokeColor="?attr/colorOutline"
-        app:strokeWidth="1dp">
+        cardBorderTint = "@{character.status}">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -25,7 +24,9 @@
                 app:layout_constraintBottom_toTopOf="@id/guideline"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent"
+                android:transitionName="@string/transition_character_image"
+                characterImage="@{character.image}" />
 
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/guideline"
@@ -39,13 +40,14 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:maxLines="1"
+                android:maxLines="2"
+                android:textAlignment="center"
                 android:text="@{character.name}"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/guideline"/>
+                app:layout_constraintTop_toBottomOf="@id/guideline" />
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/ibBookmark"

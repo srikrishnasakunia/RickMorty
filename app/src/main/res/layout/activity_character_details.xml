@@ -1,0 +1,91 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="dev.krishna.rickmorty.ui.viewmodel.CharacterDetailsViewModel"/>
+        <import type="android.view.View" />
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Character Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:strokeWidth="0dp"
+            android:scaleX="@{viewModel.isExpanded ? 1.2f : 1f}"
+            android:scaleY="@{viewModel.isExpanded ? 1.2f : 1f}"
+            android:onClick="@{() -> viewModel.toggleExpand()}">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="center">
+
+                <ImageView
+                    android:id="@+id/ivCharacter"
+                    android:layout_width="220dp"
+                    android:layout_height="220dp"
+                    android:scaleX="@{viewModel.isExpanded ? 1.3f : 1f}"
+                    android:scaleY="@{viewModel.isExpanded ? 1.3f : 1f}"
+                    android:background="@drawable/circle_background"
+                    android:clipToOutline="true"
+                    app:characterImage="@{viewModel.characters.image}" />
+
+                <TextView
+                    android:id="@+id/tvName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{viewModel.characters.name}"
+                    android:layout_marginTop="16dp"
+                    android:textSize="@{viewModel.isExpanded ? 24f : 18f}"
+                    android:textColor="@color/black"/>
+
+                <TextView
+                    android:id="@+id/tvEpisodeCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:textSize="18sp"
+                    android:textColor="@color/black"
+                    android:visibility="@{viewModel.isExpanded ? View.GONE : View.VISIBLE}"/>
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- RecyclerView for Episode List -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewEpisodes"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:layout_gravity="bottom"
+            android:visibility="@{viewModel.isExpanded ? View.VISIBLE: View.GONE}" />
+
+        <!-- Close Button -->
+        <ImageView
+            android:id="@+id/btnClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_close_white"
+            android:visibility="@{viewModel.isExpanded ? View.VISIBLE : View.GONE}"
+            android:layout_gravity="top|start"
+            android:padding="12dp"
+            android:onClick="@{() -> viewModel.toggleExpand()}"
+            app:tint="@android:color/black" />
+
+    </FrameLayout>
+</layout>

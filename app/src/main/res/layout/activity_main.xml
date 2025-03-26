@@ -8,26 +8,24 @@
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar">
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="@string/app_name"
-            app:titleCentered="true"/>
-
-        <com.google.android.material.search.SearchView
-            android:id="@+id/searchView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:hint="@string/search_hint"/>
+            android:background="@color/primary"
+            app:titleCentered="true"
+            android:paddingTop="@dimen/padding_medium" />
 
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/filterChipGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:singleSelection="false"/>
+            android:layout_marginStart="@dimen/padding_medium"
+            app:singleSelection="true"
+            app:selectionRequired="false"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -35,9 +33,9 @@
         android:id="@+id/rvCharacters"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2"/>
+        app:spanCount="3"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     <include
         android:id="@+id/loadingState"
@@ -49,6 +47,11 @@
         layout="@layout/empty_state"
         android:visibility="gone"/>
 
+    <include
+        android:id="@+id/errorState"
+        layout="@layout/error_state"
+        android:visibility="gone"/>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabScrollTop"
         android:layout_width="wrap_content"
@@ -57,6 +60,6 @@
         android:contentDescription="@string/scroll_up"
         android:src="@drawable/ic_arrow_up"
         app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="bottom|end"/>
+        app:layout_anchorGravity="bottom|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

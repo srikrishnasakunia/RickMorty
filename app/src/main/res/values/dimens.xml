@@ -8,4 +8,8 @@
     <dimen name="header_height">48dp</dimen>
     <dimen name="card_corner_radius">12dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="grid_spacing">8dp</dimen>
+    <dimen name="card_stroke_width">3dp</dimen>
+
+    <dimen name="search_elevation">4dp</dimen>
 </resources>
