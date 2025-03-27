@@ -8,7 +8,6 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import dev.krishna.rickmorty.data.api.CharacterPagingSource
 import dev.krishna.rickmorty.data.api.RickMortyApiService
-import dev.krishna.rickmorty.data.api.model.Filters
 import dev.krishna.rickmorty.data.database.AppDatabase
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -82,7 +81,11 @@ class CharacterRepository @Inject constructor(
         }
         try {
             val episodeIds = episodeUrls.map { it.substringAfterLast("/") }
-            val episodeResponse = apiService.getEpisodes(episodeIds.joinToString(","))
+
+            val episodeResponse = if (episodeIds.size == 1) {
+                listOf(apiService.getSingleEpisodes(episodeIds.first()))
+            } else
+                apiService.getMultipleEpisodes(episodeIds.joinToString(","))
             return ApiResult.Success(episodeResponse)
         } catch (e:Exception) {
             return ApiResult.Error(e)

@@ -3,6 +3,7 @@ package dev.krishna.rickmorty.utils
 import android.content.res.ColorStateList
 import android.graphics.PorterDuff
 import android.graphics.drawable.GradientDrawable
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
@@ -53,7 +54,7 @@ fun ImageView.setBookmarkIcon(isBookmarked: Boolean) {
 
 
 @BindingAdapter("statusBasedBackgroundColor")
-fun LinearLayout.setStatusBasedBackgroundColorBinding(status: String?) {
+fun MaterialCardView.setStatusBasedBackgroundColorBinding(status: String?) {
     val backgroundColor = when (status?.lowercase(Locale.ROOT)) {
         "alive" -> ContextCompat.getColor(context, R.color.green_alive)
         "dead" -> ContextCompat.getColor(context, R.color.red_dead)
@@ -81,7 +82,7 @@ fun LinearLayout.setStatusBasedBackgroundColorBinding(status: String?) {
 
 
 @BindingAdapter("statusBasedBG")
-fun MotionLayout.setStatusBasedBGBinding(status: String?) {
+fun FrameLayout.setStatusBasedBGBinding(status: String?) {
     val color = when (status?.lowercase(Locale.ROOT)) {
         "alive" -> ContextCompat.getColor(context, R.color.green_alive_light)
         "dead" -> ContextCompat.getColor(context, R.color.red_dead_light)
@@ -89,5 +90,16 @@ fun MotionLayout.setStatusBasedBGBinding(status: String?) {
     }
 
     this.setBackgroundColor(color)
+}
+
+@BindingAdapter("statusBasedExpandedBG")
+fun MaterialCardView.setStatusBasedExpandedBGBinding(status: String?) {
+    val color = when (status?.lowercase(Locale.ROOT)) {
+        "alive" -> ContextCompat.getColor(context, R.color.green_alive_light)
+        "dead" -> ContextCompat.getColor(context, R.color.red_dead_light)
+        else -> ContextCompat.getColor(context, R.color.gray_unknown_light)
+    }
+
+    this.setCardBackgroundColor(color)
 }
 

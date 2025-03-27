@@ -1,8 +1,10 @@
 package dev.krishna.rickmorty.ui.activity
 
 import android.os.Bundle
+import android.transition.ChangeBounds
 import android.util.Log
 import android.view.View
+import android.view.Window
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
