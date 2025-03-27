@@ -14,6 +14,7 @@ import dev.krishna.rickmorty.data.repository.state.ApiResult
 import dev.krishna.rickmorty.ui.adapters.RecyclerItem
 import dev.krishna.rickmorty.ui.state.UIState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -38,7 +39,7 @@ class CharacterViewModel @Inject constructor(
         observeBookmarks()
     }
 
-    fun loadCharacters() {
+    private fun loadCharacters() {
         _uiState.value = UIState.Loading
         viewModelScope.launch {
             _filters.value?.let { filters ->

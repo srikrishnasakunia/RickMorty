@@ -1,65 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
+    <data>
+
+    </data>
+
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar">
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+        android:layout_height="match_parent">
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/container"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="@string/app_name"
-            android:background="@color/primary"
-            app:titleCentered="true"
-            android:paddingTop="@dimen/padding_medium" />
+            android:layout_height="match_parent">
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/filterChipGroup"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/padding_medium"
-            app:singleSelection="true"
-            app:selectionRequired="false"/>
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/app_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar">
 
-    </com.google.android.material.appbar.AppBarLayout>
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="@color/primary"
+                    android:paddingTop="@dimen/padding_medium"
+                    app:title="@string/app_name"
+                    app:titleCentered="true" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvCharacters"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="3"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/filterChipGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/padding_medium"
+                    app:selectionRequired="false"
+                    app:singleSelection="true" />
 
-    <include
-        android:id="@+id/loadingState"
-        layout="@layout/loading_state"
-        android:visibility="gone"/>
+            </com.google.android.material.appbar.AppBarLayout>
 
-    <include
-        android:id="@+id/emptyState"
-        layout="@layout/empty_state"
-        android:visibility="gone"/>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvCharacters"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                app:spanCount="3" />
 
-    <include
-        android:id="@+id/errorState"
-        layout="@layout/error_state"
-        android:visibility="gone"/>
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fabScrollTop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:contentDescription="@string/scroll_up"
+                android:src="@drawable/ic_arrow_up"
+                app:layout_anchor="@id/app_bar"
+                app:layout_anchorGravity="bottom|end" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabScrollTop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/scroll_up"
-        android:src="@drawable/ic_arrow_up"
-        app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="bottom|end" />
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <include
+            android:id="@+id/loadingState"
+            layout="@layout/loading_state"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/emptyState"
+            layout="@layout/empty_state"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/errorState"
+            layout="@layout/error_state"
+            android:visibility="gone" />
+    </FrameLayout>
+</layout>

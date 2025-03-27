@@ -101,6 +101,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showLoading() {
         binding.loadingState.root.visibility = View.VISIBLE
+        binding.container.visibility = View.GONE
         binding.rvCharacters.visibility = View.GONE
         binding.emptyState.root.visibility = View.GONE
     }
@@ -110,6 +111,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showCharacters(characters: PagingData<RecyclerItem>) {
+        binding.container.visibility = View.VISIBLE
         binding.emptyState.root.visibility = View.GONE
         binding.rvCharacters.visibility = View.VISIBLE
         adapter.submitData(lifecycle, characters)
@@ -118,7 +120,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         binding.emptyState.root.visibility = View.VISIBLE
-        binding.emptyState.tvEmpty.text = message ?: getString(R.string.unknown_error)
+        binding.emptyState.tvEmpty.text = message
+        binding.container.visibility = View.GONE
         binding.rvCharacters.visibility = View.GONE
         hideLoading()
     }

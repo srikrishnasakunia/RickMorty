@@ -29,8 +29,6 @@ class CharacterDetailsViewModel @Inject constructor(
     private val _characters = MutableLiveData<RickMortyCharacter>()
     val characters: LiveData<RickMortyCharacter> = _characters
 
-    var episdoseCount = 0
-
     val isExpanded = MutableLiveData(false)
 
     fun loadCharacterDetails(characterId: Int) {
@@ -63,7 +61,6 @@ class CharacterDetailsViewModel @Inject constructor(
                 when (episodes) {
                     is ApiResult.Success -> {
                         _episodes.postValue(episodes.data)
-                        episdoseCount = episodes.data.size
                     }
 
                     is ApiResult.Error -> {

@@ -33,7 +33,7 @@
         app:icon="@drawable/ic_refresh"
         app:iconGravity="textStart"
         app:iconPadding="8dp"
-        app:iconTint="@color/on_primary"
+        app:iconTint="@color/error"
         style="@style/Widget.Material3.Button.OutlinedButton"/>
 
 </LinearLayout>

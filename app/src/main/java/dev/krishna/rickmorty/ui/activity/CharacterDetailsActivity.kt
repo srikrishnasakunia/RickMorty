@@ -23,12 +23,15 @@ import dev.krishna.rickmorty.databinding.ActivityCharacterDetailsBinding
 import dev.krishna.rickmorty.ui.adapters.EpisodeAdapter
 import dev.krishna.rickmorty.ui.state.UIState
 import dev.krishna.rickmorty.ui.viewmodel.CharacterDetailsViewModel
+import kotlin.properties.Delegates
 
 @AndroidEntryPoint
 class CharacterDetailsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCharacterDetailsBinding
     private val viewModel: CharacterDetailsViewModel by viewModels()
+
+    private var characterId by Delegates.notNull<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +40,7 @@ class CharacterDetailsActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
-        val characterId = intent.getIntExtra("CHARACTER_ID", -1)
+        characterId = intent.getIntExtra("CHARACTER_ID", -1)
         Log.d("CharacterDetailsActivity", "onCreate: $characterId")
 
         setupToolbar()
@@ -48,14 +51,11 @@ class CharacterDetailsActivity : AppCompatActivity() {
         }
 
         observeViewModel()
-        //setupEpisodesCard()
 
     }
 
     private fun setupToolbar() {
-        //setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        //binding.toolbar.setNavigationOnClickListener { onBackPressed() }
     }
 
     private fun setupSharedElementTransition() {
@@ -65,30 +65,28 @@ class CharacterDetailsActivity : AppCompatActivity() {
         characterImage.doOnPreDraw { supportStartPostponedEnterTransition() }
     }
 
-//    private fun setupViews(character: RickMortyCharacter) {
-//        //binding.collapsingToolbar.title = character.name
-//        Glide.with(this)
-//            .load(character.image)
-//            .transition(DrawableTransitionOptions.withCrossFade())
-//            .into(binding.ivCharacter)
-//
-//        binding.tvName.text = character.name
-//        binding.tvStatus.text = "Status: ${character.status}"
-//    }
-
     private fun observeViewModel() {
         viewModel.uiState.observe(this) { character ->
             when(character){
                 is UIState.Success -> {
-                    //binding.loadingState.root.visibility = View.GONE
+                    binding.container.visibility = View.VISIBLE
+                    binding.loadingState.root.visibility = View.GONE
+                    binding.errorState.root.visibility = View.GONE
                     binding.tvEpisodeCount.text = getString(R.string.episodes_count, character.data.episode.size)
                 }
                 is UIState.Error -> {
-//                    binding.loadingState.root.visibility = View.GONE
-//                    binding.errorState.tvError.text = character.message
+                    binding.container.visibility = View.GONE
+                    binding.loadingState.root.visibility = View.GONE
+                    binding.errorState.root.visibility = View.VISIBLE
+                    binding.errorState.tvError.text = character.message
+                    binding.errorState.btnRetry.setOnClickListener {
+                        viewModel.loadCharacterDetails(characterId)
+                    }
                 }
                 is UIState.Loading -> {
-//                    binding.loadingState.root.visibility = View.VISIBLE
+                    binding.loadingState.root.visibility = View.VISIBLE
+                    binding.container.visibility = View.GONE
+                    binding.errorState.root.visibility = View.GONE
                 }
             }
         }
@@ -104,23 +102,7 @@ class CharacterDetailsActivity : AppCompatActivity() {
             adapter = EpisodeAdapter(viewModel.episodes.value ?: emptyList())
             addItemDecoration(DividerItemDecoration(this@CharacterDetailsActivity, DividerItemDecoration.VERTICAL))
 
-            // Smooth scroll to top when expanded
             postDelayed({ smoothScrollToPosition(0) }, 300)
         }
     }
-
-//    private fun setupEpisodesCard() {
-//        binding.cardEpisodes.setOnClickListener {
-//            // Toggle card expansion
-//            val layoutParams = binding.rvEpisodes.layoutParams
-//            layoutParams.height = if (binding.rvEpisodes.visibility == View.VISIBLE) {
-//                binding.rvEpisodes.visibility = View.GONE
-//                0
-//            } else {
-//                binding.rvEpisodes.visibility = View.VISIBLE
-//                ViewGroup.LayoutParams.WRAP_CONTENT
-//            }
-//            binding.rvEpisodes.layoutParams = layoutParams
-//        }
-//    }
 }
