@@ -31,6 +31,7 @@
                     app:titleCentered="true" />
 
                 <LinearLayout
+                    android:id="@+id/llTopBar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -52,10 +53,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:src="@drawable/ic_search"
-                        android:tint="@color/black"
                         android:layout_gravity="center"
                         android:clickable="true"
-                        android:contentDescription="@string/search"/>
+                        android:contentDescription="@string/search"
+                        app:tint="@color/black" />
 
                     <!-- Search Field (Hidden by default) -->
                     <EditText

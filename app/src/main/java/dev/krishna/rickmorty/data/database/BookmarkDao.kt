@@ -1,6 +1,7 @@
 package dev.krishna.rickmorty.data.database
 
 import androidx.lifecycle.LiveData
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -22,4 +23,6 @@ interface BookmarkDao {
     @Query("SELECT EXISTS(SELECT * FROM bookmarks WHERE characterId = :characterId)")
     suspend fun isBookmarked(characterId: Int): Boolean
 
+    @Query("SELECT * FROM bookmarks")
+    suspend fun getPagedBookmarks(): List<Bookmark>
 }

@@ -7,6 +7,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
@@ -89,15 +90,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openDetailsScreen(character: RickMortyCharacter, view: View) {
-        val intent = Intent(this, CharacterDetailsActivity::class.java).apply {
-            putExtra("CHARACTER_ID", character.id)
-        }
+        if (checkIfOnline()) {
+            val intent = Intent(this, CharacterDetailsActivity::class.java).apply {
+                putExtra("CHARACTER_ID", character.id)
+            }
 
-        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-            this,
-            Pair(view.findViewById<ImageView>(R.id.ivCharacter), getString(R.string.transition_character_image))
-        )
-        startActivity(intent, options.toBundle())
+            val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                this,
+                Pair(view.findViewById<ImageView>(R.id.ivCharacter), getString(R.string.transition_character_image))
+            )
+            startActivity(intent, options.toBundle())
+        }
     }
 
     private fun setUpObservers() {
@@ -108,6 +111,13 @@ class MainActivity : AppCompatActivity() {
                 is UIState.Success -> showCharacters(state.data)
                 is UIState.Error -> showError(state.message)
             }
+        }
+
+        viewModel.isOnline.observe(this) { isOnline ->
+            if (isOnline) {
+                binding.llTopBar.visibility = View.VISIBLE
+            } else
+                binding.llTopBar.visibility = View.GONE
         }
 
         viewModel.bookmarks.observe(this) {
@@ -239,5 +249,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun scrollToTop() {
         binding.rvCharacters.smoothScrollToPosition(0)
+    }
+
+    private fun checkIfOnline():Boolean{
+        return if (viewModel.isOnline.value == true){
+            true
+        } else {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
+            false
+        }
     }
 }

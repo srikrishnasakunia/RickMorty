@@ -1,13 +1,11 @@
 package dev.krishna.rickmorty.ui.viewmodel
 
-import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.paging.LoadState
 import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.krishna.rickmorty.data.api.model.Filters
@@ -17,46 +15,55 @@ import dev.krishna.rickmorty.data.repository.CharacterRepository
 import dev.krishna.rickmorty.data.repository.state.ApiResult
 import dev.krishna.rickmorty.ui.adapters.RecyclerItem
 import dev.krishna.rickmorty.ui.state.UIState
+import dev.krishna.rickmorty.utils.NetworkMonitor
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class CharacterViewModel @Inject constructor(
-    private val characterRepository: CharacterRepository
+    private val characterRepository: CharacterRepository,
+    private val networkMonitor: NetworkMonitor
 ): ViewModel() {
 
     private val _uiState = MutableLiveData<UIState<PagingData<RecyclerItem>>>(UIState.Loading)
-    val uiState: MutableLiveData<UIState<PagingData<RecyclerItem>>> = _uiState
+    val uiState: LiveData<UIState<PagingData<RecyclerItem>>> = _uiState
 
     private val _filters = MutableLiveData<Filters>(Filters())
-    val filters: MutableLiveData<Filters> = _filters
+    val filters: LiveData<Filters> = _filters
 
     private val _bookmarks = MutableLiveData<List<Bookmark>>()
-    val bookmarks: MutableLiveData<List<Bookmark>> = _bookmarks
+    val bookmarks: LiveData<List<Bookmark>> = _bookmarks
 
     private val _searchQuery = MutableStateFlow<String?>(null)
     private var currentQuery: String? = null
 
+    private val _isOnline = MediatorLiveData<Boolean>().apply {
+        value = false
+        addSource(networkMonitor) { isOnline ->
+            if (value != isOnline) value = isOnline
+        }
+    }
+    val isOnline: LiveData<Boolean> = _isOnline
+
     init {
-        loadCharacters()
+        _isOnline.observeForever { isOnline ->
+            if (isOnline) {
+                loadCharacters(true)
+            } else {
+                loadCharacters(false)
+            }
+        }
         observeBookmarks()
         setupSearchDebouncer()
     }
 
-    fun loadCharacters() {
+    fun loadCharacters(isOnline: Boolean) {
         _uiState.value = UIState.Loading
         viewModelScope.launch {
             _filters.value?.let { filters ->
@@ -64,7 +71,8 @@ class CharacterViewModel @Inject constructor(
                     characterRepository.getCharacters(
                         name = filters.name,
                         status = filters.status,
-                        species = filters.species
+                        species = filters.species,
+                        isOnline = isOnline
                     )
                 }
                 result.observeForever { apiResult ->
@@ -89,12 +97,12 @@ class CharacterViewModel @Inject constructor(
 
     fun applyFilters(newFilters: Filters) {
         _filters.value = newFilters
-        loadCharacters()
+        loadCharacters(isOnline.value?: false)
     }
 
     fun clearFilters() {
         _filters.value = Filters()
-        loadCharacters()
+        loadCharacters(isOnline.value ?: false)
     }
 
     private fun observeBookmarks() {
@@ -139,6 +147,6 @@ class CharacterViewModel @Inject constructor(
         val currentFilters = _filters.value ?: Filters()
         val newFilters = currentFilters.copy(name = query)
         _filters.value = newFilters
-        loadCharacters()
+        loadCharacters(isOnline.value ?: false)
     }
 }
