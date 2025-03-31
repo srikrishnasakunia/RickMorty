@@ -19,3 +19,21 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep Moshi-generated adapters
+-keepclassmembers class * {
+    @com.squareup.moshi.* <methods>;
+}
+
+# Keep @Keep annotated classes
+-keep @androidx.annotation.Keep class * { *; }
+
+# Moshi specific rules
+-dontwarn okio.**
+-dontwarn com.squareup.moshi.**
+
+# Retrofit
+-dontwarn retrofit2.**
+-keep class retrofit2.** { *; }
+-keepattributes Signature
+-keepattributes Exceptions

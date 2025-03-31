@@ -2,6 +2,7 @@
     <string name="app_name">RickMorty</string>
 
     <string name="search_hint">Search characters…</string>
+    <string name="search">Search</string>
     <string name="empty_state_title">No characters found</string>
     <string name="error_loading_data">Error loading data</string>
 
@@ -23,5 +24,11 @@
     <string name="loading_message">Loading characters…</string>
 
     <string name="scroll_up">Move up</string>
+    <string name="unknown_error">Unknown Error Encountered</string>
+    <string name="transition_character_image">character_image_transition</string>
 
+    <string name="episodes_count">Episodes: %d</string>
+
+    <string name="no_offline_data">No Offline Data Found</string>
+    <string name="no_internet_connection">No internet connection</string>
 </resources>

@@ -27,7 +27,7 @@ class StickyHeaderItemDecoration: RecyclerView.ItemDecoration() {
 
     private fun findHeaderPosition(parent: RecyclerView.Adapter<*>, firstVisiblePos: Int): Int {
         for(i in firstVisiblePos downTo 0){
-            if(parent.getItemViewType(i) == CharacterPagingAdapter.ITEM_VIEW_TYPE_HEADER){
+            if(parent.getItemViewType(i) == ITEM_VIEW_TYPE_HEADER){
                 return i
             }
         }

@@ -1,0 +1,142 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="dev.krishna.rickmorty.ui.viewmodel.CharacterDetailsViewModel" />
+
+        <import type="android.view.View" />
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:id="@+id/container"
+            statusBasedBG="@{viewModel.characters.status}"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/expandedCardView"
+                statusBasedBackgroundColor="@{viewModel.characters.status}"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="@{viewModel.isExpanded ? View.VISIBLE : View.GONE}"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/btnClose"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_margin="16dp"
+                        android:onClick="@{() -> viewModel.toggleExpand()}"
+                        android:src="@drawable/ic_close_white"
+                        app:tint="@android:color/black" />
+
+                    <ImageView
+                        android:id="@+id/expandedCharacterImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="300dp"
+                        android:layout_below="@id/btnClose"
+                        android:background="@drawable/rounded_corners"
+                        android:scaleType="centerCrop"
+                        app:characterImage="@{viewModel.characters.image}" />
+
+                    <TextView
+                        android:id="@+id/expandedName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/expandedCharacterImage"
+                        android:background="@drawable/textview_rounded_bg"
+                        android:padding="16dp"
+                        android:text="@{viewModel.characters.name}"
+                        android:textAlignment="center"
+                        android:textColor="@color/black"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerViewEpisodes"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_below="@id/expandedName"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="16dp" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardView"
+                statusBasedBackgroundColor="@{viewModel.characters.status}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:onClick="@{() -> viewModel.toggleExpand()}"
+                android:visibility="@{viewModel.isExpanded ? View.GONE : View.VISIBLE}"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="8dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivCharacter"
+                        android:layout_width="220dp"
+                        android:layout_height="220dp"
+                        android:background="@drawable/circle_background"
+                        android:clipToOutline="true"
+                        app:characterImage="@{viewModel.characters.image}" />
+
+                    <TextView
+                        android:id="@+id/tvName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="@{viewModel.characters.name}"
+                        android:textColor="@color/black"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/tvEpisodeCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:textColor="@color/black"
+                        android:textSize="18sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </FrameLayout>
+
+        <include
+            android:id="@+id/loadingState"
+            layout="@layout/loading_state"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/emptyState"
+            layout="@layout/empty_state"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/errorState"
+            layout="@layout/error_state"
+            android:visibility="gone" />
+    </FrameLayout>
+</layout>

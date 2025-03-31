@@ -1,62 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
+    <data>
+
+    </data>
+
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/container"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="@string/app_name"
-            app:titleCentered="true"/>
+            android:layout_height="match_parent">
 
-        <com.google.android.material.search.SearchView
-            android:id="@+id/searchView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:hint="@string/search_hint"/>
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/app_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar">
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/filterChipGroup"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:singleSelection="false"/>
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="@color/primary"
+                    android:paddingTop="@dimen/padding_medium"
+                    app:title="@string/app_name"
+                    app:titleCentered="true" />
 
-    </com.google.android.material.appbar.AppBarLayout>
+                <LinearLayout
+                    android:id="@+id/llTopBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/padding_medium">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvCharacters"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2"/>
 
-    <include
-        android:id="@+id/loadingState"
-        layout="@layout/loading_state"
-        android:visibility="gone"/>
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/filterChipGroup"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:selectionRequired="false"
+                        app:singleSelection="true"/>
 
-    <include
-        android:id="@+id/emptyState"
-        layout="@layout/empty_state"
-        android:visibility="gone"/>
+                    <ImageView
+                        android:id="@+id/ivSearch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:src="@drawable/ic_search"
+                        android:layout_gravity="center"
+                        android:clickable="true"
+                        android:contentDescription="@string/search"
+                        app:tint="@color/black" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabScrollTop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/scroll_up"
-        android:src="@drawable/ic_arrow_up"
-        app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="bottom|end"/>
+                    <EditText
+                        android:id="@+id/etSearch"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:visibility="gone"
+                        android:hint="@string/search_hint"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:textColor="@color/black"
+                        android:drawableTint="@color/black"
+                        android:drawableEnd="@drawable/ic_clear"/>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+                </LinearLayout>
+
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvCharacters"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                app:spanCount="3" />
+
+                <LinearLayout
+                    android:id="@+id/emptyStateContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.airbnb.lottie.LottieAnimationView
+                        android:id="@+id/lottieEmptyState"
+                        android:layout_width="400dp"
+                        android:layout_height="400dp"
+                        app:lottie_rawRes="@raw/no_data_found"
+                        app:lottie_autoPlay="true"
+                        app:lottie_loop="true"/>
+
+                    <TextView
+                        android:id="@+id/tvEmptyState"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/padding_medium"
+                        android:text="@string/no_offline_data"
+                        android:textSize="16sp"
+                        android:textColor="@color/gray_400"
+                        android:gravity="center"/>
+                </LinearLayout>
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fabScrollTop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:contentDescription="@string/scroll_up"
+                android:src="@drawable/ic_arrow_up"
+                app:layout_anchor="@id/app_bar"
+                app:layout_anchorGravity="bottom|end" />
+
+            <include
+                android:id="@+id/loadingState"
+                layout="@layout/loading_state"
+                android:visibility="gone" />
+
+            <include
+                android:id="@+id/emptyState"
+                layout="@layout/empty_state"
+                android:visibility="gone" />
+
+            <include
+                android:id="@+id/errorState"
+                layout="@layout/error_state"
+                android:visibility="gone" />
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </FrameLayout>
+</layout>

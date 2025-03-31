@@ -8,5 +8,8 @@ data class Bookmark(
     @PrimaryKey val characterId: Int,
     val name: String,
     val image: String,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val status: String,
+    val species: String,
+    val episodeUrls: List<String>? = null
 )

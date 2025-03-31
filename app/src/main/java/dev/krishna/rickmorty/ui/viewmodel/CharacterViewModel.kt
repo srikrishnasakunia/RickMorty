@@ -1,5 +1,7 @@
 package dev.krishna.rickmorty.ui.viewmodel
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,49 +15,79 @@ import dev.krishna.rickmorty.data.repository.CharacterRepository
 import dev.krishna.rickmorty.data.repository.state.ApiResult
 import dev.krishna.rickmorty.ui.adapters.RecyclerItem
 import dev.krishna.rickmorty.ui.state.UIState
+import dev.krishna.rickmorty.utils.NetworkMonitor
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class CharacterViewModel @Inject constructor(
-    private val characterRepository: CharacterRepository
+    private val characterRepository: CharacterRepository,
+    private val networkMonitor: NetworkMonitor
 ): ViewModel() {
 
     private val _uiState = MutableLiveData<UIState<PagingData<RecyclerItem>>>(UIState.Loading)
-    val uiState: MutableLiveData<UIState<PagingData<RecyclerItem>>> = _uiState
+    val uiState: LiveData<UIState<PagingData<RecyclerItem>>> = _uiState
 
     private val _filters = MutableLiveData<Filters>(Filters())
-    val filters: MutableLiveData<Filters> = _filters
+    val filters: LiveData<Filters> = _filters
 
     private val _bookmarks = MutableLiveData<List<Bookmark>>()
-    val bookmarks: MutableLiveData<List<Bookmark>> = _bookmarks
+    val bookmarks: LiveData<List<Bookmark>> = _bookmarks
 
+    private val _searchQuery = MutableStateFlow<String?>(null)
+    private var currentQuery: String? = null
+
+    private val _isOnline = MediatorLiveData<Boolean>().apply {
+        value = false
+        addSource(networkMonitor) { isOnline ->
+            if (value != isOnline) value = isOnline
+        }
+    }
+    val isOnline: LiveData<Boolean> = _isOnline
 
     init {
-        loadCharacters()
+        _isOnline.observeForever { isOnline ->
+            if (isOnline) {
+                loadCharacters(true)
+            } else {
+                loadCharacters(false)
+            }
+        }
         observeBookmarks()
+        setupSearchDebouncer()
     }
 
-    fun loadCharacters() {
+    fun loadCharacters(isOnline: Boolean) {
         _uiState.value = UIState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _filters.value?.let { filters ->
-                characterRepository.getCharacters(
-                    name = filters.name,
-                    status = filters.status,
-                    species = filters.species
-                ).observeForever { result ->
-                    when (result) {
+                val result = withContext(Dispatchers.IO) {
+                    characterRepository.getCharacters(
+                        name = filters.name,
+                        status = filters.status,
+                        species = filters.species,
+                        isOnline = isOnline
+                    )
+                }
+                result.observeForever { apiResult ->
+                    when (apiResult) {
                         is ApiResult.Success -> {
-                            val mappedData = result.data.map { character ->
-                                RecyclerItem.CharacterItem(character) as RecyclerItem
+                            val mappedData = apiResult.data.map { character ->
+                                RecyclerItem.CharacterItem(
+                                    character,
+                                    bookmarks.value?.any { it.characterId == character.id } ?: false
+                                ) as RecyclerItem
                             }
                             _uiState.postValue(UIState.Success(mappedData))
                         }
-
                         is ApiResult.Error -> {
-                            _uiState.postValue(UIState.Error(result.exception.message.toString()))
+                            _uiState.postValue(UIState.Error(apiResult.exception.message.toString()))
                         }
                     }
                 }
@@ -65,19 +97,17 @@ class CharacterViewModel @Inject constructor(
 
     fun applyFilters(newFilters: Filters) {
         _filters.value = newFilters
-        loadCharacters()
+        loadCharacters(isOnline.value?: false)
     }
 
-    fun clearFilters(filters: Filters) {
+    fun clearFilters() {
         _filters.value = Filters()
-        loadCharacters()
+        loadCharacters(isOnline.value ?: false)
     }
 
     private fun observeBookmarks() {
-        viewModelScope.launch(Dispatchers.IO) {
-            characterRepository.getBookmarks().observeForever {
-                _bookmarks.postValue(it)
-            }
+        characterRepository.getBookmarks().observeForever {
+            _bookmarks.postValue(it)
         }
     }
 
@@ -85,5 +115,38 @@ class CharacterViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             characterRepository.toggleBookmark(character)
         }
+    }
+
+    fun setSearchQuery(query: String?) {
+        viewModelScope.launch {
+            if (query.isNullOrEmpty()){
+                currentQuery = null
+                updateFiltersWithSearchQuery(null)
+            }
+            _searchQuery.emit(query)
+        }
+    }
+
+    private fun setupSearchDebouncer() {
+        viewModelScope.launch {
+            _searchQuery
+                .debounce(300)
+                .distinctUntilChanged()
+                .filter { query ->
+                    query.isNullOrBlank() || query.length >= 3
+                }
+                .collect { query ->
+                    currentQuery = query
+                    updateFiltersWithSearchQuery(query)
+                }
+        }
+    }
+
+
+    private fun updateFiltersWithSearchQuery(query: String?) {
+        val currentFilters = _filters.value ?: Filters()
+        val newFilters = currentFilters.copy(name = query)
+        _filters.value = newFilters
+        loadCharacters(isOnline.value ?: false)
     }
 }
