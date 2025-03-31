@@ -84,6 +84,33 @@
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 app:spanCount="3" />
 
+                <LinearLayout
+                    android:id="@+id/emptyStateContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.airbnb.lottie.LottieAnimationView
+                        android:id="@+id/lottieEmptyState"
+                        android:layout_width="400dp"
+                        android:layout_height="400dp"
+                        app:lottie_rawRes="@raw/no_data_found"
+                        app:lottie_autoPlay="true"
+                        app:lottie_loop="true"/>
+
+                    <TextView
+                        android:id="@+id/tvEmptyState"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/padding_medium"
+                        android:text="@string/no_offline_data"
+                        android:textSize="16sp"
+                        android:textColor="@color/gray_400"
+                        android:gravity="center"/>
+                </LinearLayout>
+
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fabScrollTop"
                 android:layout_width="wrap_content"

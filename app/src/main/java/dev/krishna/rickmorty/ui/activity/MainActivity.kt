@@ -84,6 +84,9 @@ class MainActivity : AppCompatActivity() {
             when (val state = loadState.refresh) {
                 is LoadState.Error -> showError(state.error.message.toString())
                 is LoadState.Loading -> if (adapter.snapshot().isEmpty()) showLoading()
+                is LoadState.NotLoading -> if (adapter.itemCount == 0) {
+                    binding.emptyStateContainer.visibility = View.VISIBLE
+                } else binding.emptyStateContainer.visibility = View.GONE
                 else -> hideLoading()
             }
         }
@@ -255,7 +258,7 @@ class MainActivity : AppCompatActivity() {
         return if (viewModel.isOnline.value == true){
             true
         } else {
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.no_internet_connection, Toast.LENGTH_SHORT).show()
             false
         }
     }
