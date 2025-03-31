@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <!-- Define any ViewModel if needed -->
+
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -11,7 +11,7 @@
         android:layout_height="match_parent"
         android:fitsSystemWindows="true">
 
-        <!-- App Bar with Collapsing Toolbar -->
+
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar"
             android:layout_width="match_parent"
@@ -29,7 +29,7 @@
                 app:expandedTitleMarginEnd="16dp"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
-                <!-- Character Image with Parallax Effect -->
+
                 <ImageView
                     android:id="@+id/ivCharacter"
                     android:layout_width="220dp"
@@ -39,7 +39,7 @@
                     android:background="@drawable/circle_background"
                     android:clipToOutline="true" />
 
-                <!-- Toolbar -->
+
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
@@ -51,7 +51,7 @@
             </com.google.android.material.appbar.CollapsingToolbarLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
-        <!-- Scrollable Content -->
+
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -64,7 +64,7 @@
                 android:layout_height="match_parent"
                 android:padding="16dp">
 
-                <!-- Character Details Card -->
+
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardDetails"
                     android:layout_width="match_parent"
@@ -99,7 +99,7 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Episodes Section -->
+
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardEpisodes"
                     android:layout_width="match_parent"

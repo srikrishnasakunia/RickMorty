@@ -37,7 +37,7 @@
                     android:orientation="horizontal"
                     android:padding="@dimen/padding_medium">
 
-                    <!-- Chip Group (Visible by default) -->
+
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/filterChipGroup"
                         android:layout_width="0dp"
@@ -46,7 +46,6 @@
                         app:selectionRequired="false"
                         app:singleSelection="true"/>
 
-                    <!-- Search Icon (Visible by default) -->
                     <ImageView
                         android:id="@+id/ivSearch"
                         android:layout_width="wrap_content"
@@ -58,7 +57,6 @@
                         android:contentDescription="@string/search"
                         app:tint="@color/black" />
 
-                    <!-- Search Field (Hidden by default) -->
                     <EditText
                         android:id="@+id/etSearch"
                         android:layout_width="0dp"
