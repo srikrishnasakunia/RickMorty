@@ -30,13 +30,48 @@
                     app:title="@string/app_name"
                     app:titleCentered="true" />
 
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/filterChipGroup"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/padding_medium"
-                    app:selectionRequired="false"
-                    app:singleSelection="true" />
+                    android:orientation="horizontal"
+                    android:padding="@dimen/padding_medium">
+
+                    <!-- Chip Group (Visible by default) -->
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/filterChipGroup"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:selectionRequired="false"
+                        app:singleSelection="true"/>
+
+                    <!-- Search Icon (Visible by default) -->
+                    <ImageView
+                        android:id="@+id/ivSearch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:src="@drawable/ic_search"
+                        android:tint="@color/black"
+                        android:layout_gravity="center"
+                        android:clickable="true"
+                        android:contentDescription="@string/search"/>
+
+                    <!-- Search Field (Hidden by default) -->
+                    <EditText
+                        android:id="@+id/etSearch"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:visibility="gone"
+                        android:hint="@string/search_hint"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:textColor="@color/black"
+                        android:drawableTint="@color/black"
+                        android:drawableEnd="@drawable/ic_clear"/>
+
+                </LinearLayout>
 
             </com.google.android.material.appbar.AppBarLayout>
 
@@ -58,21 +93,21 @@
                 app:layout_anchor="@id/app_bar"
                 app:layout_anchorGravity="bottom|end" />
 
+            <include
+                android:id="@+id/loadingState"
+                layout="@layout/loading_state"
+                android:visibility="gone" />
+
+            <include
+                android:id="@+id/emptyState"
+                layout="@layout/empty_state"
+                android:visibility="gone" />
+
+            <include
+                android:id="@+id/errorState"
+                layout="@layout/error_state"
+                android:visibility="gone" />
+
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-        <include
-            android:id="@+id/loadingState"
-            layout="@layout/loading_state"
-            android:visibility="gone" />
-
-        <include
-            android:id="@+id/emptyState"
-            layout="@layout/empty_state"
-            android:visibility="gone" />
-
-        <include
-            android:id="@+id/errorState"
-            layout="@layout/error_state"
-            android:visibility="gone" />
     </FrameLayout>
 </layout>

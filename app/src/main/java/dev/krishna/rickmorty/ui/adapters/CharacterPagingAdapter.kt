@@ -1,5 +1,6 @@
 package dev.krishna.rickmorty.ui.adapters
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +17,7 @@ class CharacterPagingAdapter(
     private val onBookMarkClick: (RickMortyCharacter) -> Unit
 ) : PagingDataAdapter<RecyclerItem, RecyclerView.ViewHolder>(CHARACTER_COMPARATOR) {
 
-    private var bookmarks: List<Bookmark> = emptyList()
+    private var bookmarks: Set<Bookmark> = emptySet()
 
     inner class CharacterViewHolder(
         private val binding: ItemCharacterBinding
@@ -26,16 +27,16 @@ class CharacterPagingAdapter(
                 this.character = character
                 this.isBookmarked = isBookmarked
 
-                root.setOnClickListener {
-                    onItemClick(character, it)
-                }
-
-                ibBookmark.setOnClickListener {
-                    onBookMarkClick(character)
-                }
+                root.setOnClickListener { onItemClick(character, it) }
+                ibBookmark.setOnClickListener { onBookMarkClick(character) }
 
                 executePendingBindings()
             }
+        }
+
+        fun updateBookmarkState(isBookmarked: Boolean) {
+            binding.isBookmarked = isBookmarked
+            binding.executePendingBindings()
         }
     }
 
@@ -50,40 +51,34 @@ class CharacterPagingAdapter(
     companion object {
         const val ITEM_VIEW_TYPE_HEADER = 0
         const val ITEM_VIEW_TYPE_CHARACTER = 1
+        const val IS_BOOKMARKED = "isBookmarked"
 
         val CHARACTER_COMPARATOR = object : DiffUtil.ItemCallback<RecyclerItem>() {
-            override fun areItemsTheSame(
-                oldItem: RecyclerItem,
-                newItem: RecyclerItem
-            ): Boolean {
+            override fun areItemsTheSame(oldItem: RecyclerItem, newItem: RecyclerItem): Boolean {
                 return when {
-                    oldItem is RecyclerItem.HeaderItem && newItem is RecyclerItem.HeaderItem -> {
-                        oldItem.name == newItem.name
-                    }
-
-                    oldItem is RecyclerItem.CharacterItem && newItem is RecyclerItem.CharacterItem -> {
-                        oldItem.character.id == newItem.character.id
-                    }
-
+                    oldItem is RecyclerItem.HeaderItem && newItem is RecyclerItem.HeaderItem -> oldItem.name == newItem.name
+                    oldItem is RecyclerItem.CharacterItem && newItem is RecyclerItem.CharacterItem -> oldItem.character.id == newItem.character.id
                     else -> false
                 }
             }
 
-            override fun areContentsTheSame(
-                oldItem: RecyclerItem,
-                newItem: RecyclerItem
-            ): Boolean {
+            override fun areContentsTheSame(oldItem: RecyclerItem, newItem: RecyclerItem): Boolean {
                 return when {
-                    oldItem is RecyclerItem.HeaderItem && newItem is RecyclerItem.HeaderItem -> {
-                        oldItem == newItem
-                    }
-
-                    oldItem is RecyclerItem.CharacterItem && newItem is RecyclerItem.CharacterItem -> {
-                        oldItem.character == newItem.character
-                    }
-
+                    oldItem is RecyclerItem.HeaderItem && newItem is RecyclerItem.HeaderItem -> oldItem == newItem
+                    oldItem is RecyclerItem.CharacterItem && newItem is RecyclerItem.CharacterItem -> oldItem.character == newItem.character
                     else -> false
                 }
+            }
+
+            override fun getChangePayload(oldItem: RecyclerItem, newItem: RecyclerItem): Any? {
+                if (oldItem is RecyclerItem.CharacterItem && newItem is RecyclerItem.CharacterItem) {
+                    val diffBundle = Bundle()
+                    if (oldItem.character.isBookmarked != newItem.character.isBookmarked) {
+                        diffBundle.putBoolean(IS_BOOKMARKED, newItem.character.isBookmarked)
+                    }
+                    return if (diffBundle.size() > 0) diffBundle else null
+                }
+                return null
             }
         }
     }
@@ -91,21 +86,11 @@ class CharacterPagingAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             ITEM_VIEW_TYPE_HEADER -> HeaderViewHolder(
-                ItemHeaderBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                ItemHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
-
             ITEM_VIEW_TYPE_CHARACTER -> CharacterViewHolder(
-                ItemCharacterBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                ItemCharacterBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
-
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -120,41 +105,50 @@ class CharacterPagingAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
-            is HeaderViewHolder -> bindHeaderViewHolder(holder, position)
-            is CharacterViewHolder -> bindCharacterViewHolder(holder, position)
+            is HeaderViewHolder -> {
+                (getItem(position) as RecyclerItem.HeaderItem).let { holder.bind(it.name) }
+            }
+            is CharacterViewHolder -> {
+                (getItem(position) as RecyclerItem.CharacterItem).let { character ->
+                    val isBookmarked = bookmarks.any { it.characterId == character.character.id }
+                    holder.bind(character.character, isBookmarked)
+                }
+            }
         }
     }
 
-    private fun bindHeaderViewHolder(holder: HeaderViewHolder, position: Int) {
-        (getItem(position) as RecyclerItem.HeaderItem).let { header->
-            holder.bind(header.name)
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isNotEmpty() && payloads[0] is Bundle && holder is CharacterViewHolder) {
+            val bundle = payloads[0] as Bundle
+            if (bundle.containsKey(IS_BOOKMARKED)) {
+                holder.updateBookmarkState(bundle.getBoolean(IS_BOOKMARKED))
+            }
+        } else {
+            super.onBindViewHolder(holder, position, payloads)
         }
     }
 
-    private fun bindCharacterViewHolder(holder: CharacterViewHolder, position: Int) {
-        (getItem(position) as RecyclerItem.CharacterItem).let { character ->
-            val isBookmarked = bookmarks.any { it.characterId == character.character.id }
-            holder.bind(character.character, isBookmarked)
+    fun updateBookmarks(newBookmarks: List<Bookmark>) {
+        val newBookmarkSet = newBookmarks.map { it }.toSet()
+        val changedPositions = mutableListOf<Int>()
+
+        snapshot().items.forEachIndexed { index, item ->
+            if (item is RecyclerItem.CharacterItem) {
+                val wasBookmarked = bookmarks.any { it.characterId == item.character.id }
+                val isBookmarked = newBookmarkSet.any { it.characterId == item.character.id }
+
+
+                if (wasBookmarked != isBookmarked) {
+                    changedPositions.add(index)
+                }
+            }
+        }
+
+        bookmarks = newBookmarkSet
+
+        changedPositions.forEach { position ->
+            notifyItemChanged(position, "BOOKMARK_CHANGED")
         }
     }
+}
 
-        fun updateBookmarks(newBookmarks: List<Bookmark>) {
-            val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-                override fun getOldListSize(): Int = bookmarks.size
-
-                override fun getNewListSize(): Int = newBookmarks.size
-
-                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-                    bookmarks[oldItemPosition].characterId == newBookmarks[newItemPosition].characterId
-
-
-                override fun areContentsTheSame(
-                    oldItemPosition: Int,
-                    newItemPosition: Int
-                ): Boolean =
-                    bookmarks[oldItemPosition] == newBookmarks[newItemPosition]
-            })
-            bookmarks = newBookmarks
-            diff.dispatchUpdatesTo(this)
-        }
-    }

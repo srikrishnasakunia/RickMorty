@@ -20,7 +20,8 @@ data class Character(
     val image: String,
     val episode: List<String>,
     val url: String,
-    val created: String
+    val created: String,
+    val isBookmarked: Boolean = false
 ): Parcelable
 
 typealias RickMortyCharacter = Character

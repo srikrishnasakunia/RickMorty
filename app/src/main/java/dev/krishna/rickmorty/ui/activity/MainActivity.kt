@@ -2,12 +2,17 @@ package dev.krishna.rickmorty.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.view.MotionEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.util.Pair
+import androidx.core.widget.addTextChangedListener
+import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
@@ -41,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         setUpObservers()
         setupFilters()
         setupFab()
+        setupSearch()
     }
 
     private fun setUpCharacterRecyclerView() {
@@ -63,6 +69,7 @@ class MainActivity : AppCompatActivity() {
             }
             adapter = this@MainActivity.adapter
             addItemDecoration(StickyHeaderItemDecoration())
+            setHasFixedSize(true)
             itemAnimator = DefaultItemAnimator().apply {
                 addDuration = 200
                 changeDuration = 200
@@ -71,6 +78,14 @@ class MainActivity : AppCompatActivity() {
         }
         val spacing = resources.getDimensionPixelSize(R.dimen.grid_spacing)
         binding.rvCharacters.addItemDecoration(GridSpacingItemDecoration(2, spacing, true))
+
+        adapter.addLoadStateListener { loadState ->
+            when (val state = loadState.refresh) {
+                is LoadState.Error -> showError(state.error.message.toString())
+                is LoadState.Loading -> if (adapter.snapshot().isEmpty()) showLoading()
+                else -> hideLoading()
+            }
+        }
     }
 
     private fun openDetailsScreen(character: RickMortyCharacter, view: View) {
@@ -87,6 +102,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setUpObservers() {
         viewModel.uiState.observe(this) { state->
+            Log.d("MainActivity", "State changed to $state")
             when(state) {
                 is UIState.Loading -> showLoading()
                 is UIState.Success -> showCharacters(state.data)
@@ -99,31 +115,53 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateUIState(
+        showLoading: Boolean = false,
+        showError: Boolean = false,
+        errorMessage: String? = null
+    ) {
+        binding.apply {
+            loadingState.root.visibility = if (showLoading) View.VISIBLE else View.GONE
+            errorState.root.visibility = if (showError) View.VISIBLE else View.GONE
+            rvCharacters.visibility = if (!showLoading && !showError) View.VISIBLE else View.GONE
+            emptyState.root.visibility = View.GONE
+
+            errorMessage?.let {
+                errorState.tvError.text = it
+            }
+        }
+    }
+
     private fun showLoading() {
-        binding.loadingState.root.visibility = View.VISIBLE
-        binding.container.visibility = View.GONE
-        binding.rvCharacters.visibility = View.GONE
-        binding.emptyState.root.visibility = View.GONE
+        updateUIState(showLoading = true)
     }
 
     private fun hideLoading() {
-        binding.loadingState.root.visibility = View.GONE
+        updateUIState()
     }
 
     private fun showCharacters(characters: PagingData<RecyclerItem>) {
-        binding.container.visibility = View.VISIBLE
-        binding.emptyState.root.visibility = View.GONE
-        binding.rvCharacters.visibility = View.VISIBLE
+        binding.apply {
+            container.visibility = View.VISIBLE
+            emptyState.root.visibility = View.GONE
+            errorState.root.visibility = View.GONE
+            rvCharacters.visibility = View.VISIBLE
+        }
         adapter.submitData(lifecycle, characters)
         hideLoading()
     }
 
     private fun showError(message: String) {
-        binding.emptyState.root.visibility = View.VISIBLE
-        binding.emptyState.tvEmpty.text = message
-        binding.container.visibility = View.GONE
-        binding.rvCharacters.visibility = View.GONE
-        hideLoading()
+        updateUIState(showError = true, errorMessage = message)
+        binding.apply {
+            errorState.btnRetry.setOnClickListener {
+                etSearch.text.clear()
+                filterChipGroup.visibility = View.VISIBLE
+                ivSearch.visibility = View.VISIBLE
+                etSearch.visibility = View.GONE
+                viewModel.clearFilters()
+            }
+        }
     }
 
     private fun setupFilters() {
@@ -136,8 +174,46 @@ class MainActivity : AppCompatActivity() {
                     viewModel.applyFilters(
                         if (checked) Filters(status = status) else Filters()
                     )
+                    scrollToTop()
                 }
             })
+        }
+    }
+
+    private fun setupSearch() {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        binding.ivSearch.setOnClickListener {
+            Log.d("MainActivity", "setupSearch: Clicked")
+            binding.apply {
+                filterChipGroup.visibility = View.GONE
+                ivSearch.visibility = View.GONE
+                etSearch.visibility = View.VISIBLE
+                etSearch.requestFocus()
+            }
+            imm.showSoftInput(binding.etSearch, InputMethodManager.SHOW_IMPLICIT)
+        }
+
+        binding.etSearch.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP){
+                val drawableEnd = binding.etSearch.compoundDrawables[2]
+                if (drawableEnd != null &&
+                    event.rawX >= binding.etSearch.right - binding.etSearch.paddingEnd -
+                    drawableEnd.bounds.width()) {
+                    binding.apply {
+                        etSearch.text.clear()
+                        filterChipGroup.visibility = View.VISIBLE
+                        ivSearch.visibility = View.VISIBLE
+                        etSearch.visibility = View.GONE
+                    }
+                    imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
+                    return@setOnTouchListener true
+                }
+            }
+            false
+        }
+
+        binding.etSearch.addTextChangedListener { text ->
+            viewModel.setSearchQuery(text.toString())
         }
     }
 
@@ -145,7 +221,8 @@ class MainActivity : AppCompatActivity() {
         binding.fabScrollTop.apply {
             hide()
             setOnClickListener {
-                binding.rvCharacters.smoothScrollToPosition(0)
+                scrollToTop()
+                binding.fabScrollTop.visibility = View.GONE
             }
         }
 
@@ -158,5 +235,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    private fun scrollToTop() {
+        binding.rvCharacters.smoothScrollToPosition(0)
     }
 }
