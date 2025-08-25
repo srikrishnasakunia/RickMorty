@@ -1,8 +1,6 @@
 package dev.krishna.rickmorty.ui.viewmodel
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,70 +8,89 @@ import dev.krishna.rickmorty.data.api.model.Episode
 import dev.krishna.rickmorty.data.api.model.RickMortyCharacter
 import dev.krishna.rickmorty.data.repository.CharacterRepository
 import dev.krishna.rickmorty.data.repository.state.ApiResult
-import dev.krishna.rickmorty.ui.state.UIState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class CharacterDetailsViewModel @Inject constructor(
-    private val characterRepository: CharacterRepository
+    private val characterRepository: CharacterRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableLiveData<UIState<RickMortyCharacter>>(UIState.Loading)
-    val uiState: LiveData<UIState<RickMortyCharacter>> = _uiState
+    private val characterId: StateFlow<Int> = savedStateHandle.getStateFlow("characterId", -1)
 
-    private val _episodes = MutableLiveData<List<Episode>>()
-    val episodes: LiveData<List<Episode>> = _episodes
+    private val _isExpanded = MutableStateFlow(false)
+    val isExpanded = _isExpanded.asStateFlow()
 
-    private val _characters = MutableLiveData<RickMortyCharacter>()
-    val characters: LiveData<RickMortyCharacter> = _characters
+    data class CharacterDetailsUiState(
+        val character: RickMortyCharacter? = null,
+        val episodes: List<Episode> = emptyList(),
+        val isLoading: Boolean = true,
+        val error: String? = null
+    )
 
-    val isExpanded = MutableLiveData(false)
-
-    fun loadCharacterDetails(characterId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val characterDetails = characterRepository.getCharacterDetails(characterId)
-                Log.d("CharacterDetailsViewModel", "loadCharacterDetails: $characterDetails")
-                when (characterDetails) {
-                    is ApiResult.Success -> {
-                        _characters.postValue(characterDetails.data)
-                        _uiState.postValue(UIState.Success(characterDetails.data))
-                        loadEpisodes(characterDetails.data.episode)
-                    }
-
-                    is ApiResult.Error -> {
-                        _uiState.postValue(UIState.Error(characterDetails.exception.message.toString()))
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<CharacterDetailsUiState> = characterId.flatMapLatest { id ->
+        if (id == -1) {
+            flowOf(CharacterDetailsUiState(isLoading = false, error = "Character ID not found"))
+        } else {
+            characterRepository.getCharacterDetailsFlow(id)
+                .flatMapLatest { characterResult ->
+                    when (characterResult) {
+                        is ApiResult.Success -> {
+                            val character = characterResult.data
+                            characterRepository.getEpisodesDataFlow(character.episode)
+                                .map { episodesResult ->
+                                    when (episodesResult) {
+                                        is ApiResult.Success -> {
+                                            CharacterDetailsUiState(
+                                                character = character,
+                                                episodes = episodesResult.data,
+                                                isLoading = false
+                                            )
+                                        }
+                                        is ApiResult.Error -> {
+                                            CharacterDetailsUiState(
+                                                character = character,
+                                                isLoading = false,
+                                                error = episodesResult.exception.message
+                                            )
+                                        }
+                                    }
+                                }
+                        }
+                        is ApiResult.Error -> {
+                            flowOf(
+                                CharacterDetailsUiState(
+                                    isLoading = false,
+                                    error = characterResult.exception.message
+                                )
+                            )
+                        }
                     }
                 }
-            } catch (e: Exception) {
-                _uiState.postValue(UIState.Error(e.message.toString()))
-            }
         }
-    }
-
-    private fun loadEpisodes(episodeUrls: List<String>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val episodes = characterRepository.getEpisodesData(episodeUrls)
-                Log.d("CharacterDetailsViewModel", "loadEpisodes: $episodes")
-                when (episodes) {
-                    is ApiResult.Success -> {
-                        _episodes.postValue(episodes.data)
-                    }
-
-                    is ApiResult.Error -> {
-                        _uiState.postValue(UIState.Error(episodes.exception.message.toString()))
-                    }
-                }
-            } catch (e: Exception) {
-                _uiState.postValue(UIState.Error(e.message.toString()))
-            }
-        }
-    }
+    }.onStart {
+        emit(CharacterDetailsUiState(isLoading = true))
+    }.catch { e ->
+        emit(CharacterDetailsUiState(isLoading = false, error = e.message))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = CharacterDetailsUiState(isLoading = true)
+    )
 
     fun toggleExpand() {
-        isExpanded.value = !(isExpanded.value ?: false)
+        _isExpanded.value = !_isExpanded.value
     }
 }

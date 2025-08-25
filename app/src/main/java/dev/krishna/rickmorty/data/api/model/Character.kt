@@ -21,6 +21,7 @@ data class Character(
     val episode: List<String>,
     val url: String,
     val created: String,
+    @Transient
     val isBookmarked: Boolean = false
 ): Parcelable
 

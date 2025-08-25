@@ -31,9 +31,4 @@ interface RickMortyApiService {
     suspend fun getMultipleEpisodes(
         @Path("ids") ids: String
     ): List<Episode>
-
-    @GET("episode/{ids}")
-    suspend fun getSingleEpisodes(
-        @Path("ids") ids: String
-    ): Episode
 }

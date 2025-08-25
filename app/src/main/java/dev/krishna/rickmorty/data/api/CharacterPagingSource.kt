@@ -1,6 +1,5 @@
 package dev.krishna.rickmorty.data.api
 
-import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import dev.krishna.rickmorty.data.api.model.Character
@@ -12,13 +11,16 @@ class CharacterPagingSource(
     private val status: String?,
     private val species: String?
 ) : PagingSource<Int, Character>() {
-    override fun getRefreshKey(state: PagingState<Int, Character>): Int? = null
+    override fun getRefreshKey(state: PagingState<Int, Character>): Int? {
+        return state.anchorPosition?.let {
+            state.closestPageToPosition(it)?.prevKey?.plus(1) ?: state.closestPageToPosition(it)?.nextKey?.minus(1)
+        }
+    }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Character> {
         return try {
             val page = params.key ?: 1
             val response = apiService.getCharacters(page, name, status, species)
-            Log.e("CharacterPagingSource", "Response: $response")
             LoadResult.Page(
                 data = response.results,
                 prevKey = if (response.info.prev != null) page - 1 else null,

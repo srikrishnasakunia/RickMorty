@@ -19,6 +19,8 @@
     <string name="episodes_format">Episodes:\n%s</string>
 
     <string name="clear">Clear</string>
+    <string name="clear_search">Clear search</string>
+    <string name="bookmark">Bookmark</string>
     <string name="generic_error_message">Something went wrong!\nPlease try again</string>
     <string name="retry">Retry</string>
     <string name="loading_message">Loading characters…</string>

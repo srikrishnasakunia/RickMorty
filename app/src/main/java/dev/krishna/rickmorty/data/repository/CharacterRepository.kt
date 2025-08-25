@@ -1,23 +1,23 @@
 package dev.krishna.rickmorty.data.repository
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.liveData
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.map
 import dev.krishna.rickmorty.data.api.CharacterPagingSource
 import dev.krishna.rickmorty.data.api.RickMortyApiService
-import dev.krishna.rickmorty.data.database.AppDatabase
-import javax.inject.Inject
-import javax.inject.Singleton
-import dev.krishna.rickmorty.data.api.model.Character
 import dev.krishna.rickmorty.data.api.model.Episode
+import dev.krishna.rickmorty.data.api.model.RickMortyCharacter
+import dev.krishna.rickmorty.data.database.AppDatabase
 import dev.krishna.rickmorty.data.database.Bookmark
 import dev.krishna.rickmorty.data.repository.state.ApiResult
-import dev.krishna.rickmorty.ui.adapters.CachedCharactersPagingSource
-import dev.krishna.rickmorty.utils.NetworkMonitor
 import dev.krishna.rickmorty.utils.UNKNOWN
+import dev.krishna.rickmorty.utils.convertBookMarkToRickMortyCharacter
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class CharacterRepository @Inject constructor(
@@ -25,55 +25,45 @@ class CharacterRepository @Inject constructor(
     private val appDatabase: AppDatabase
 ) {
 
-    suspend fun getCharacters(
-        name: String?,
-        status: String?,
-        species: String?,
+    fun getCharacters(
+        filters: dev.krishna.rickmorty.data.api.model.Filters,
         isOnline: Boolean
-    ): LiveData<ApiResult<PagingData<Character>>> = liveData{
-        try {
-            val pager = if (isOnline) {
-                Pager(
-                    config = PagingConfig(pageSize = 20),
-                    pagingSourceFactory = {
-                        CharacterPagingSource(
-                            apiService = apiService,
-                            name = name,
-                            status = status,
-                            species = species
-                        )
-                    }
-                ).flow
-            } else {
-                Pager(
-                    config = PagingConfig(pageSize = 20),
-                    pagingSourceFactory = {
-                        CachedCharactersPagingSource(
-                            bookmarkDao = appDatabase.bookmarkDao()
-                        )
-                    }
-                ).flow
+    ): Flow<PagingData<RickMortyCharacter>> {
+        return if (isOnline) {
+            Pager(
+                config = PagingConfig(pageSize = 20),
+                pagingSourceFactory = {
+                    CharacterPagingSource(
+                        apiService = apiService,
+                        name = filters.name,
+                        status = filters.status,
+                        species = filters.species
+                    )
+                }
+            ).flow
+        } else {
+            Pager(
+                config = PagingConfig(pageSize = 20),
+                pagingSourceFactory = { appDatabase.bookmarkDao().getPagedBookmarks() }
+            ).flow.map { pagingData ->
+                pagingData.map { bookmark ->
+                    bookmark.convertBookMarkToRickMortyCharacter()
+                }
             }
-            pager.collect{ value ->
-                emit(ApiResult.Success(value))
-            }
-        } catch (e:Exception) {
-            Log.e("CharacterRepository", "Error fetching characters: ${e.message}")
-            emit(ApiResult.Error(e))
         }
     }
 
-    fun getBookmarks(): LiveData<List<Bookmark>> {
+    fun getBookmarks(): Flow<List<Bookmark>> {
         return appDatabase.bookmarkDao().getAllBookmarks()
     }
 
-    suspend fun toggleBookmark(character: Character) {
+    suspend fun toggleBookmark(character: RickMortyCharacter) {
         val bookmark = Bookmark(
             characterId = character.id,
             name = character.name,
             image = character.image,
-            status = character.status?: UNKNOWN,
-            species = character.species?: UNKNOWN,
+            status = character.status ?: UNKNOWN,
+            species = character.species ?: UNKNOWN,
             episodeUrls = character.episode
         )
         if (appDatabase.bookmarkDao().isBookmarked(character.id)) {
@@ -83,31 +73,26 @@ class CharacterRepository @Inject constructor(
         }
     }
 
-    suspend fun getCharacterDetails(characterId: Int): ApiResult<Character>{
+    fun getCharacterDetailsFlow(characterId: Int): Flow<ApiResult<RickMortyCharacter>> = flow {
         try {
             val characterDetails = apiService.getCharacterDetails(characterId)
-            Log.d("CharacterRepository", "getCharacterDetails: $characterDetails")
-            return ApiResult.Success(characterDetails)
+            emit(ApiResult.Success(characterDetails))
         } catch (e: Exception) {
-            return ApiResult.Error(e)
+            emit(ApiResult.Error(e))
         }
     }
 
-    suspend fun getEpisodesData(episodeUrls: List<String>): ApiResult<List<Episode>> {
+    fun getEpisodesDataFlow(episodeUrls: List<String>): Flow<ApiResult<List<Episode>>> = flow {
         if (episodeUrls.isEmpty()) {
-            return ApiResult.Success(emptyList())
+            emit(ApiResult.Success(emptyList()))
+            return@flow
         }
         try {
             val episodeIds = episodeUrls.map { it.substringAfterLast("/") }
-
-            val episodeResponse = if (episodeIds.size == 1) {
-                listOf(apiService.getSingleEpisodes(episodeIds.first()))
-            } else
-                apiService.getMultipleEpisodes(episodeIds.joinToString(","))
-            return ApiResult.Success(episodeResponse)
-        } catch (e:Exception) {
-            return ApiResult.Error(e)
+            val episodeResponse = apiService.getMultipleEpisodes(episodeIds.joinToString(","))
+            emit(ApiResult.Success(episodeResponse))
+        } catch (e: Exception) {
+            emit(ApiResult.Error(e))
         }
     }
-
 }

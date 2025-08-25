@@ -1,12 +1,12 @@
 package dev.krishna.rickmorty.data.database
 
-import androidx.lifecycle.LiveData
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BookmarkDao {
@@ -14,8 +14,8 @@ interface BookmarkDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBookmark(bookmark: Bookmark)
 
-    @Query("SELECT * FROM bookmarks")
-    fun getAllBookmarks(): LiveData<List<Bookmark>>
+    @Query("SELECT * FROM bookmarks ORDER BY timestamp DESC")
+    fun getAllBookmarks(): Flow<List<Bookmark>>
 
     @Delete
     suspend fun deleteBookmark(bookmark: Bookmark)
@@ -23,6 +23,6 @@ interface BookmarkDao {
     @Query("SELECT EXISTS(SELECT * FROM bookmarks WHERE characterId = :characterId)")
     suspend fun isBookmarked(characterId: Int): Boolean
 
-    @Query("SELECT * FROM bookmarks")
-    suspend fun getPagedBookmarks(): List<Bookmark>
+    @Query("SELECT * FROM bookmarks ORDER BY timestamp DESC")
+    fun getPagedBookmarks(): PagingSource<Int, Bookmark>
 }

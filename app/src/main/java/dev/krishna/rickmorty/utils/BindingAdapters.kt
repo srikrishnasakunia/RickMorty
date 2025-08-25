@@ -1,3 +1,4 @@
+/*
 package dev.krishna.rickmorty.utils
 
 import android.content.res.ColorStateList
@@ -103,3 +104,4 @@ fun MaterialCardView.setStatusBasedExpandedBGBinding(status: String?) {
     this.setCardBackgroundColor(color)
 }
 
+*/
